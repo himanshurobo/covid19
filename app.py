@@ -85,17 +85,17 @@ map_india.save('india_data.html')
 
 
 
-map_world = folium.Map(location=[20, 30], zoom_start=2.5,tiles='Stamen Toner')
+map_world = folium.Map(location=[20, 30], zoom_start=2.0,tiles='Stamen Toner')
 
 def getCountryWiseDataStats(map_world):
 
     df_full,recent_updated = getCountryWiseData()
 
-    for lat, lon, value, name, last_updated,confirmed,deaths,recovered in zip(df_full['Latitude'], df_full['Longitude'], df_full['Active Cases'], df_full['Country_Region'],df_full['Last_Update'],df_full['Confirmed'],df_full['Deaths'],df_full['Recovered']):
+    for lat, lon, value, active_cases,name, last_updated,confirmed,deaths,recovered in zip(df_full['Latitude'], df_full['Longitude'], df_full['mean_active'],df_full['Active Cases'], df_full['Country_Region'],df_full['Last_Update'],df_full['Confirmed'],df_full['Deaths'],df_full['Recovered']):
         folium.CircleMarker([lat, lon],
-                            radius=value*0.005,
+                            radius=value*100,
                             tooltip = ('<strong>State</strong>: ' + str(name).capitalize() + '<br>'
-                                    '<strong>Active Cases</strong>: ' + str(value) + '<br>'
+                                    '<strong>Active Cases</strong>: ' + str(active_cases) + '<br>'
                                     '<strong>Last_updated</strong>: ' + str(last_updated) + '<br>'
                                     '<strong>Confirmeds</strong>: ' + str(confirmed) + '<br>'
                                     '<strong>Deaths </strong>: ' + str(deaths) + '<br>'
@@ -151,7 +151,7 @@ app.layout = html.Div(
 
 html.H5('India Map View Last UpdatedAt:'+dateTime + ' Active Cases:'+ str(df_total['Active Cases']) +' Cured: '+str(df_total['Cured/Discharged/Migrated']) +' Death: ' + str(df_total['Death'])),
 html.Iframe(id = 'map_india',  srcDoc = open("india_data.html",'r').read(), width='100%',height='600',loading_state={'is_loading' : True}),
-html.Button(id='map-submit-button', n_clicks=0, children='Submit'),
+html.Button(id='map-submit-button', n_clicks=1, children='Submit'),
 html.H5('World Map View Last UpdatedAt : '+recent_updated),
 html.Iframe(id = 'map_world',  srcDoc = open("world_data.html",'r').read(), width='100%',height='600')
 
@@ -231,6 +231,7 @@ def update_map(n_clicks):
     dash.dependencies.Output('map_world', 'srcDoc'),
     [dash.dependencies.Input('map-submit-button', 'n_clicks')])
 def update_map(n_clicks):
+    print("click")
     if n_clicks is None:
         return dash.no_update
     else:

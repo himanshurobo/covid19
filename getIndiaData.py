@@ -6,6 +6,11 @@ import pandas as pd
 from fuzzywuzzy import fuzz 
 from fuzzywuzzy import process
 
+from sklearn import preprocessing
+
+
+
+
 def checker(wrong_options,correct_options):
     response = []    
     for wrong_option in wrong_options:
@@ -179,12 +184,27 @@ def getCountryWiseData():
 
     df = pd.read_csv(dataUrl)
     
+    df['Active'] = df['Confirmed'] + df['Deaths'] \
+        - df['Recovered']
 
-    mean_active = df.Active.dropna().mean()
-    max_active = df.Active.dropna().max()
-    min_active = df.Active.dropna().min()
+    # Create x, where x the 'scores' column's values as floats
+    x = df[['Active']].values.astype(float)
 
-    df['mean_active'] = df['Active'].apply(lambda x: (x - mean_active ) / (max_active -min_active ))
+    # Create a minimum and maximum processor object
+    min_max_scaler = preprocessing.MinMaxScaler()
+
+    # Create an object to transform the data to fit minmax processor
+    x_scaled = min_max_scaler.fit_transform(x)
+
+    # Run the normalizer on the dataframe
+    df['mean_active'] = x_scaled
+
+    df.loc[df['mean_active'] == 0.0,'mean_active'] = 0.005
+    # mean_active = df.Active.dropna().mean()
+    # max_active = df.Active.dropna().max()
+    # min_active = df.Active.dropna().min()
+
+    # df['mean_active'] = df['Active'].apply(lambda x: (x - mean_active ) / (max_active -min_active ))
 
     df.rename(columns={"Lat": "Latitude", "Long_": "Longitude", "Active" : "Active Cases"},inplace=True)
 
@@ -195,8 +215,7 @@ def getCountryWiseData():
     df['StartDate'] = pd.to_datetime(df['Last_Update'])
     recent_date = df['StartDate'].max()
 
-    df['Active Cases'] = df['Confirmed'] + df['Deaths'] \
-        - df['Recovered']
+
     df.to_csv('./text1.csv',index=False)
     return df,str(recent_date)
 
