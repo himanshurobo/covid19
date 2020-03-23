@@ -9,11 +9,12 @@ import flask
 from getIndiaData import getIndiaData,getCountryWiseData
 
 from apscheduler.scheduler import Scheduler
-import time
+import time,json
 
 
 global dateTime
 global recent_updated
+global df_total
 
 sched = Scheduler() # Scheduler object
 sched.start()
@@ -55,6 +56,12 @@ def getIndiaStats(map_india):
 
     df_full_org,dateTime = getIndiaData()
 
+    df_total = (df_full_org.tail(1).apply(lambda x: x.to_json(), axis=1))['Total']
+    
+
+    df_total = json.loads(df_total)
+    print(df_total)
+    print('0000---->>>',df_total['Active Cases'])
     df_full = df_full_org.drop(df_full_org.tail(1).index,inplace=False)
 
     for lat, lon, value, name, case_indian, case_foreign, cured, death in zip(df_full['Latitude'], df_full['Longitude'], df_full['Active Cases'], df_full['Name of State / UT'], df_full['Total Confirmed cases (Indian National)'],df_full['Total Confirmed cases ( Foreign National )'],df_full['Cured/Discharged/Migrated'],df_full['Death']):
@@ -70,10 +77,10 @@ def getIndiaStats(map_india):
                             
                             fill_color='red',
                             fill_opacity=0.3 ).add_to(map_india)
-    return map_india,dateTime
+    return map_india,dateTime,df_total
 
 
-map_india,dateTime = getIndiaStats(map_india)    
+map_india,dateTime,df_total = getIndiaStats(map_india)    
 map_india.save('india_data.html')
 
 
@@ -83,8 +90,6 @@ map_world = folium.Map(location=[20, 30], zoom_start=2.5,tiles='Stamen Toner')
 def getCountryWiseDataStats(map_world):
 
     df_full,recent_updated = getCountryWiseData()
-
-    # df_full = df_full_org.drop(df_full_org.tail(1).index,inplace=False)
 
     for lat, lon, value, name, last_updated,confirmed,deaths,recovered in zip(df_full['Latitude'], df_full['Longitude'], df_full['Active Cases'], df_full['Country_Region'],df_full['Last_Update'],df_full['Confirmed'],df_full['Deaths'],df_full['Recovered']):
         folium.CircleMarker([lat, lon],
@@ -144,9 +149,9 @@ app.layout = html.Div(
         config={ 'displayModeBar': False }
     ),
 
-html.H5('India Map View Last UpdatedAt :'+dateTime),
-html.Iframe(id = 'map_india',  srcDoc = open("india_data.html",'r').read(), width='100%',height='600'),
-
+html.H5('India Map View Last UpdatedAt:'+dateTime + ' Active Cases:'+ str(df_total['Active Cases']) +' Cured: '+str(df_total['Cured/Discharged/Migrated']) +' Death: ' + str(df_total['Death'])),
+html.Iframe(id = 'map_india',  srcDoc = open("india_data.html",'r').read(), width='100%',height='600',loading_state={'is_loading' : True}),
+html.Button(id='map-submit-button', n_clicks=0, children='Submit'),
 html.H5('World Map View Last UpdatedAt : '+recent_updated),
 html.Iframe(id = 'map_world',  srcDoc = open("world_data.html",'r').read(), width='100%',height='600')
 
@@ -212,9 +217,28 @@ def update_plot_cum_metrics(country, state, metrics):
     return barchart(data, metrics, prefix="Cum", yaxisTitle="Cumulated Cases")
 
 
+@app.callback(
+    dash.dependencies.Output('map_india', 'srcDoc'),
+    [dash.dependencies.Input('map-submit-button', 'n_clicks')])
+def update_map(n_clicks):
+    if n_clicks is None:
+        return dash.no_update
+    else:
+        return open('india_data.html', 'r').read()
+
+
+@app.callback(
+    dash.dependencies.Output('map_world', 'srcDoc'),
+    [dash.dependencies.Input('map-submit-button', 'n_clicks')])
+def update_map(n_clicks):
+    if n_clicks is None:
+        return dash.no_update
+    else:
+        return open('world_data.html', 'r').read()
+
 def job():
     print("I'm working...")
-    map_india1,dateTime = getIndiaStats(map_india)    
+    map_india1,dateTime,df_total = getIndiaStats(map_india)    
     map_india1.save('india_data.html')
 
     map_world1,recent_updated = getCountryWiseDataStats(map_world)    
