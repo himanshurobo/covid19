@@ -149,10 +149,10 @@ app.layout = html.Div(
         config={ 'displayModeBar': False }
     ),
 
-html.H5('India Map View Last UpdatedAt:'+dateTime + ' Active Cases:'+ str(df_total['Active Cases']) +' Cured: '+str(df_total['Cured/Discharged/Migrated']) +' Death: ' + str(df_total['Death'])),
+html.H5(id = 'india_text_update',title = 'India Map View Last UpdatedAt:'+dateTime + ' Active Cases:'+ str(df_total['Active Cases']) +' Cured: '+str(df_total['Cured/Discharged/Migrated']) +' Death: ' + str(df_total['Death'])),
 html.Iframe(id = 'map_india',  srcDoc = open("india_data.html",'r').read(), width='100%',height='600',loading_state={'is_loading' : True}),
 html.Button(id='map-submit-button', n_clicks=1, children='Submit'),
-html.H5('World Map View Last UpdatedAt : '+recent_updated),
+html.H5(id = 'world_text_update',title = 'World Map View Last UpdatedAt : '+recent_updated),
 html.Iframe(id = 'map_world',  srcDoc = open("world_data.html",'r').read(), width='100%',height='600')
 
 
@@ -221,6 +221,7 @@ def update_plot_cum_metrics(country, state, metrics):
     dash.dependencies.Output('map_india', 'srcDoc'),
     [dash.dependencies.Input('map-submit-button', 'n_clicks')])
 def update_map(n_clicks):
+    print("india Click")
     if n_clicks is None:
         return dash.no_update
     else:
@@ -231,11 +232,30 @@ def update_map(n_clicks):
     dash.dependencies.Output('map_world', 'srcDoc'),
     [dash.dependencies.Input('map-submit-button', 'n_clicks')])
 def update_map(n_clicks):
-    print("click")
+    print("World click")
     if n_clicks is None:
         return dash.no_update
     else:
         return open('world_data.html', 'r').read()
+
+
+
+@app.callback(
+    Output('india_text_update', 'children'),
+    [Input('map-submit-button', 'n_clicks')])
+def update_statusBar_india(n_clicks):
+    return 'India Map View Last UpdatedAt:'+dateTime + ' Active Cases:'+ str(df_total['Active Cases']) +' Cured: '+str(df_total['Cured/Discharged/Migrated']) +' Death: ' + str(df_total['Death'])
+  
+
+
+@app.callback(Output("world_text_update", "children"),
+              [Input("map-submit-button", "n_clicks")])
+def update_statusBar_world(n_clicks):
+    return 'World Map View Last UpdatedAt : '+recent_updated
+
+
+
+
 
 def job():
     print("I'm working...")
