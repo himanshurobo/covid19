@@ -5,7 +5,7 @@ from plotly import graph_objs as go
 from dash.dependencies import Input, Output
 import pandas as pd
 import folium 
-
+import flask
 from getIndiaData import getIndiaData,getCountryWiseData
 
 from apscheduler.scheduler import Scheduler
@@ -18,10 +18,10 @@ global recent_updated
 sched = Scheduler() # Scheduler object
 sched.start()
 
-
+server = flask.Flask(__name__)
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets,server=server)
 
 
 baseURL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/"
@@ -230,4 +230,4 @@ def job():
 sched.add_interval_job(job,minutes=15)
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.server.run(debug=True,threaded=True)
