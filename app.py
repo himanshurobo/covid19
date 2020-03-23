@@ -230,4 +230,4 @@ def job():
 sched.add_interval_job(job,minutes=15)
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True,port='80')
