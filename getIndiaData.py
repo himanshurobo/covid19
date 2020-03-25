@@ -126,13 +126,18 @@ def getIndiaData():
     df.columns = df.iloc[0]
     df.drop(df.index[0],inplace=True)
     # using dictionary to convert specific columns 
-    convert_dict = {'Total Confirmed cases (Indian National)': int, 
-                    'Total Confirmed cases ( Foreign National )': int,
-                    'Cured/Discharged/Migrated' : int,
-                    'Death' : int
-                } 
-    df = df.astype(convert_dict)
-    # #print(df.info())
+    convert_dict = {'Total Confirmed cases (Indian National)': float, 
+                    'Total Confirmed cases ( Foreign National )': float,
+                    'Cured/Discharged/Migrated' : float,
+                    'Death' : float
+                }
+    df['Total Confirmed cases (Indian National)'] = df['Total Confirmed cases (Indian National)'].str.extract(r'(\d+)').astype('float')
+    df['Total Confirmed cases ( Foreign National )'] = df['Total Confirmed cases ( Foreign National )'].str.extract(r'(\d+)').astype('float')
+    df['Cured/Discharged/Migrated'] = df['Cured/Discharged/Migrated'].str.extract(r'(\d+)').astype('float')
+    df['Death'] = df['Death'].str.extract(r'(\d+)').astype('float')
+
+    # df = df.astype(convert_dict)
+    # print(df.info())
     df['Active Cases'] = df['Total Confirmed cases (Indian National)'] + df['Total Confirmed cases ( Foreign National )'] \
         - df['Cured/Discharged/Migrated'] - df['Death']
 
