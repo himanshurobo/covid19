@@ -10,7 +10,8 @@ from getIndiaData import getIndiaData,getCountryWiseData
 
 from apscheduler.scheduler import Scheduler
 import time,json
-
+import datetime as dt 
+from datetime import timedelta
 
 global dateTime
 global recent_updated
@@ -37,16 +38,24 @@ def loadData(fileName, columnName):
             .drop(['Lat', 'Long'], axis=1) \
             .melt(id_vars=['Province/State', 'Country/Region'], var_name='date', value_name=columnName) \
             .fillna('<all>')
-    data['date'] = data['date'].astype('datetime64[ns]')
+
+
+    data['date'] = pd.to_datetime(data['date'])
+    # print("11111111111111111111",data.tail())
+    # data['date'] = data['date'].astype('datetime64[ns]')
+    # print(data['date'][1])pan
+    # data['date'] = data['date'].tz_localize(tz = 'Asia/Kolkata')
     return data
 
 
-allData = loadData("time_series_19-covid-Confirmed.csv", "CumConfirmed") \
-    .merge(loadData("time_series_19-covid-Deaths.csv", "CumDeaths")) \
-    .merge(loadData("time_series_19-covid-Recovered.csv", "CumRecovered"))
+allData = loadData("time_series_covid19_confirmed_global.csv", "CumConfirmed") \
+    .merge(loadData("time_series_covid19_deaths_global.csv", "CumDeaths")) \
+    .merge(loadData("time_series_covid19_recovered_global.csv", "CumRecovered"))
 
 countries = allData['Country/Region'].unique()
 countries.sort()
+
+
 
 
 map_india = folium.Map(location=[20, 80], zoom_start=4.5,tiles='Stamen Toner')
@@ -177,6 +186,7 @@ def nonreactive_data(country, state):
     else:
         data = data.loc[data['Province/State'] == state]
     newCases = data.select_dtypes(include='int64').diff().fillna(0)
+    print("nsofwefoiwehfewoih-->>",newCases.columns)
     newCases.columns = [column.replace('Cum', 'New') for column in newCases.columns]
     data = data.join(newCases)
     data['dateStr'] = data['date'].dt.strftime('%b %d, %Y')
@@ -214,6 +224,7 @@ def update_plot_new_metrics(country, state, metrics):
 )
 def update_plot_cum_metrics(country, state, metrics):
     data = nonreactive_data(country, state)
+    print('DATA -- >>> ',data.tail())
     return barchart(data, metrics, prefix="Cum", yaxisTitle="Cumulated Cases")
 
 
