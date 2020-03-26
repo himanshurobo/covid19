@@ -34,8 +34,21 @@ baseURL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse
 tickFont = {'size':12, 'color':"rgb(30,30,30)", 'family':"Courier New, monospace"}
 
 def loadData(fileName, columnName): 
-    data = pd.read_csv(baseURL + fileName) \
-            .drop(['Lat', 'Long'], axis=1) \
+    # data = pd.read_csv(baseURL + fileName) \
+    #         .drop(['Lat', 'Long'], axis=1) \
+    #         .melt(id_vars=['Province/State', 'Country/Region'], var_name='date', value_name=columnName) \
+    #         .fillna('<all>')
+
+    data = pd.read_csv(baseURL + fileName)
+    
+    yesterday_1 = dt.datetime.strftime(dt.datetime.now() - timedelta(1), "%-m/%-d/%Y")
+    yesterday_2 = dt.datetime.strftime(dt.datetime.now() - timedelta(2), "%-m/%-d/%Y")
+    # print(yesterday_1,"-->>",yesterday_2)
+
+    if 'CumRecovered' == columnName:
+        data[yesterday_1] = data[yesterday_2]
+        # print(data.head())
+    data = data.drop(['Lat', 'Long'], axis=1) \
             .melt(id_vars=['Province/State', 'Country/Region'], var_name='date', value_name=columnName) \
             .fillna('<all>')
 
@@ -69,8 +82,8 @@ def getIndiaStats(map_india):
     
 
     df_total = json.loads(df_total)
-    print(df_total)
-    print('0000---->>>',df_total['Active Cases'])
+    # print(df_total)
+    # print('0000---->>>',df_total['Active Cases'])
     df_full = df_full_org.drop(df_full_org.tail(1).index,inplace=False)
 
     for lat, lon, value, name, case_indian, case_foreign, cured, death in zip(df_full['Latitude'], df_full['Longitude'], df_full['Active Cases'], df_full['Name of State / UT'], df_full['Total Confirmed cases (Indian National)'],df_full['Total Confirmed cases ( Foreign National )'],df_full['Cured/Discharged/Migrated'],df_full['Death']):
@@ -145,7 +158,7 @@ app.layout = html.Div(
             dcc.Checklist(
                 id='metrics',
                 options=[{'label':m, 'value':m} for m in ['Confirmed', 'Deaths', 'Recovered']],
-                value=['Confirmed', 'Deaths','Recovered']
+                value=['Confirmed', 'Deaths']
             )
         ])
     ]),
@@ -186,7 +199,7 @@ def nonreactive_data(country, state):
     else:
         data = data.loc[data['Province/State'] == state]
     newCases = data.select_dtypes(include='int64').diff().fillna(0)
-    print("nsofwefoiwehfewoih-->>",newCases.columns)
+    # print("nsofwefoiwehfewoih-->>",newCases.columns)
     newCases.columns = [column.replace('Cum', 'New') for column in newCases.columns]
     data = data.join(newCases)
     data['dateStr'] = data['date'].dt.strftime('%b %d, %Y')
@@ -224,7 +237,7 @@ def update_plot_new_metrics(country, state, metrics):
 )
 def update_plot_cum_metrics(country, state, metrics):
     data = nonreactive_data(country, state)
-    print('DATA -- >>> ',data.tail())
+    # print('DATA -- >>> ',data.tail())
     return barchart(data, metrics, prefix="Cum", yaxisTitle="Cumulated Cases")
 
 
