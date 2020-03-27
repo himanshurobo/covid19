@@ -41,13 +41,13 @@ def loadData(fileName, columnName):
 
     data = pd.read_csv(baseURL + fileName)
     
-    yesterday_1 = dt.datetime.strftime(dt.datetime.now() - timedelta(1), "%-m/%-d/%Y")
-    yesterday_2 = dt.datetime.strftime(dt.datetime.now() - timedelta(2), "%-m/%-d/%Y")
+    yesterday_1 = dt.datetime.strftime(dt.datetime.now() - timedelta(1), "%-m/%-d/%y")
+    yesterday_2 = dt.datetime.strftime(dt.datetime.now() - timedelta(2), "%-m/%-d/%y")
     # print(yesterday_1,"-->>",yesterday_2)
-
+    # print(data.head())
     if 'CumRecovered' == columnName:
         data[yesterday_1] = data[yesterday_2]
-        # print(data.head())
+    # print(data.head())
     data = data.drop(['Lat', 'Long'], axis=1) \
             .melt(id_vars=['Province/State', 'Country/Region'], var_name='date', value_name=columnName) \
             .fillna('<all>')
