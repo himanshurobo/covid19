@@ -77,7 +77,7 @@ map_india = folium.Map(location=[20, 80], zoom_start=4.5,tiles='Stamen Toner')
 def getIndiaStats(map_india):
 
     df_full_org,dateTime = getIndiaData()
-
+    df_full_org.dropna(how='all', axis=1,inplace=True)
     df_total = (df_full_org.tail(1).apply(lambda x: x.to_json(), axis=1))['Total']
     
 

@@ -108,7 +108,7 @@ def getIndiaData():
 
 
     df = pd.DataFrame(data)
-    # #print(df.head())    
+    print(df.head())    
         
     # df.set_index('S. No.', inplace=True)
     # Dict={title:column for (title,column) in col}
@@ -131,8 +131,8 @@ def getIndiaData():
                     'Cured/Discharged/Migrated' : float,
                     'Death' : float
                 }
-    df['Total Confirmed cases (Indian National)'] = df['Total Confirmed cases (Indian National)'].str.extract(r'(\d+)').astype('float')
-    df['Total Confirmed cases ( Foreign National )'] = df['Total Confirmed cases ( Foreign National )'].str.extract(r'(\d+)').astype('float')
+    df['Total Confirmed cases (Indian National)'] = df['Total Confirmed cases *'].str.extract(r'(\d+)').astype('float')
+    df['Total Confirmed cases ( Foreign National )'] = df['Total Confirmed cases *'].str.extract(r'(\d+)').astype('float')
     df['Cured/Discharged/Migrated'] = df['Cured/Discharged/Migrated'].str.extract(r'(\d+)').astype('float')
     df['Death'] = df['Death'].str.extract(r'(\d+)').astype('float')
 
@@ -176,6 +176,8 @@ def getIndiaData():
     merged_df.drop(columns=['States','score'],inplace=True)
     # #print(indiaStateLatLong.loc[name_match[0]])
     merged_df.set_index('S. No.',inplace=True)
+    
+    merged_df.drop(merged_df.tail(1).index,inplace=True)
     merged_df.loc['Total'] = merged_df[convertList].sum(axis=0,numeric_only=True)
     merged_df.to_csv('./text.csv',index=False)
     return merged_df,dateTime
