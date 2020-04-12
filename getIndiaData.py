@@ -215,14 +215,14 @@ def getCountryWiseData():
 
     df.rename(columns={"Lat": "Latitude", "Long_": "Longitude", "Active" : "Active Cases"},inplace=True)
 
-    #print(df.head())
+    print(df.head())
 
     # df = df[:5]
     df1 = df.copy()
     df['StartDate'] = pd.to_datetime(df['Last_Update'])
     recent_date = df['StartDate'].max()
 
-
+    df = df[df['Latitude'].notna()]
     df.to_csv('./text1.csv',index=False)
     return df,str(recent_date)
 

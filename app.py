@@ -7,7 +7,7 @@ import pandas as pd
 import folium 
 import flask
 from getIndiaData import getIndiaData,getCountryWiseData
-
+from streamlit import getMergeData
 from apscheduler.scheduler import Scheduler
 import time,json
 import datetime as dt 
@@ -76,33 +76,30 @@ map_india = folium.Map(location=[20, 80], zoom_start=4.5,tiles='Stamen Toner')
 
 def getIndiaStats(map_india):
 
-    df_full_org,dateTime = getIndiaData()
-    df_full_org.dropna(how='all', axis=1,inplace=True)
-    df_total = (df_full_org.tail(1).apply(lambda x: x.to_json(), axis=1))['Total']
+    df_full = getMergeData()
+    # df_full_org.dropna(how='all', axis=1,inplace=True)
+    # df_total = (df_full_org.tail(1).apply(lambda x: x.to_json(), axis=1))['Total']
     
 
-    df_total = json.loads(df_total)
+    # df_total = json.loads(df_total)
     # print(df_total)
     # print('0000---->>>',df_total['Active Cases'])
-    df_full = df_full_org.drop(df_full_org.tail(1).index,inplace=False)
+    # df_full = df_full_org.drop(df_full_org.tail(1).index,inplace=False)
 
-    for lat, lon, value, name, case_indian, case_foreign, cured, death in zip(df_full['Latitude'], df_full['Longitude'], df_full['Active Cases'], df_full['Name of State / UT'], df_full['Total Confirmed cases (Indian National)'],df_full['Total Confirmed cases ( Foreign National )'],df_full['Cured/Discharged/Migrated'],df_full['Death']):
+    for lat, lon, confirm, name, deltaConfirm in zip(df_full['lat'], df_full['lon'], df_full['confirmed'], df_full['city_name'],df_full['delta.confirmed']):
         folium.CircleMarker([lat, lon],
-                            radius=value*0.7,
+                            radius=confirm*0.01,
                             tooltip = ('<strong>State</strong>: ' + str(name).capitalize() + '<br>'
-                                    '<strong>Active Cases</strong>: ' + str(value) + '<br>'
-                                    '<strong>Indian Cases</strong>: ' + str(case_indian) + '<br>'
-                                    '<strong>Foreign Cases</strong>: ' + str(case_foreign) + '<br>'
-                                    '<strong>Cured ases</strong>: ' + str(cured) + '<br>'
-                                    '<strong>Death</strong>: ' + str(death) + '<br>'),
+                                    '<strong>Active Cases</strong>: ' + str(confirm) + '<br>'
+                                    '<strong>Delta Cases</strong>: ' + str(deltaConfirm) + '<br>'),
                             color='red',
                             
                             fill_color='red',
                             fill_opacity=0.3 ).add_to(map_india)
-    return map_india,dateTime,df_total
+    return map_india
 
 
-map_india,dateTime,df_total = getIndiaStats(map_india)    
+map_india = getIndiaStats(map_india)    
 map_india.save('india_data.html')
 
 
@@ -171,10 +168,10 @@ app.layout = html.Div(
         config={ 'displayModeBar': False }
     ),
 
-html.H5(id = 'india_text_update',title = 'India Map View Last UpdatedAt:'+dateTime + ' Active Cases:'+ str(df_total['Active Cases']) +' Cured: '+str(df_total['Cured/Discharged/Migrated']) +' Death: ' + str(df_total['Death'])),
+html.H5(id = 'india_text_update',title = 'India Map View' ),
 html.Iframe(id = 'map_india',  srcDoc = open("india_data.html",'r').read(), width='100%',height='600',loading_state={'is_loading' : True}),
 html.Button(id='map-submit-button', n_clicks=1, children='Submit'),
-html.H5(id = 'world_text_update',title = 'World Map View Last UpdatedAt : '+recent_updated),
+html.H5(id = 'world_text_update',title = 'World Map View '),
 html.Iframe(id = 'map_world',  srcDoc = open("world_data.html",'r').read(), width='100%',height='600')
 
 
@@ -268,14 +265,14 @@ def update_map(n_clicks):
     Output('india_text_update', 'children'),
     [Input('map-submit-button', 'n_clicks')])
 def update_statusBar_india(n_clicks):
-    return 'India Map View Last UpdatedAt:'+dateTime + ' Active Cases:'+ str(df_total['Active Cases']) +' Cured: '+str(df_total['Cured/Discharged/Migrated']) +' Death: ' + str(df_total['Death'])
+    return 'India Map View'
   
 
 
 @app.callback(Output("world_text_update", "children"),
               [Input("map-submit-button", "n_clicks")])
 def update_statusBar_world(n_clicks):
-    return 'World Map View Last UpdatedAt : '+recent_updated
+    return 'World Map View '
 
 
 
@@ -283,7 +280,7 @@ def update_statusBar_world(n_clicks):
 
 def job():
     print("I'm working...")
-    map_india1,dateTime,df_total = getIndiaStats(map_india)    
+    map_india1 = getIndiaStats(map_india)    
     map_india1.save('india_data.html')
 
     map_world1,recent_updated = getCountryWiseDataStats(map_world)    
