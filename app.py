@@ -88,7 +88,7 @@ def getIndiaStats(map_india):
 
     for lat, lon, confirm, name, deltaConfirm in zip(df_full['lat'], df_full['lon'], df_full['confirmed'], df_full['city_name'],df_full['delta.confirmed']):
         folium.CircleMarker([lat, lon],
-                            radius=confirm*100,
+                            radius=confirm*0.0001,
                             tooltip = ('<strong>State</strong>: ' + str(name).capitalize() + '<br>'
                                     '<strong>Active Cases</strong>: ' + str(confirm) + '<br>'
                                     '<strong>Delta Cases</strong>: ' + str(deltaConfirm) + '<br>'),
