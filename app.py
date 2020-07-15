@@ -112,7 +112,7 @@ def getCountryWiseDataStats(map_world):
 
     for lat, lon, value, active_cases,name, last_updated,confirmed,deaths,recovered in zip(df_full['Latitude'], df_full['Longitude'], df_full['mean_active'],df_full['Active Cases'], df_full['Country_Region'],df_full['Last_Update'],df_full['Confirmed'],df_full['Deaths'],df_full['Recovered']):
         folium.CircleMarker([lat, lon],
-                            radius=value*100,
+                            radius=value*0.01,
                             tooltip = ('<strong>State</strong>: ' + str(name).capitalize() + '<br>'
                                     '<strong>Active Cases</strong>: ' + str(active_cases) + '<br>'
                                     '<strong>Last_updated</strong>: ' + str(last_updated) + '<br>'
